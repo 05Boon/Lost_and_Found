@@ -1,0 +1,13 @@
+[project]
+name = "findit"
+version = "0.1.0"
+description = "Lost-and-found web application"
+requires-python = ">=3.13"
+dependencies = [
+    "django>=6.1.3,<7.0",
+    "djangorestframework>=3.16,<4.0",
+    "pillow>=13.0.0,<14.0",
+]
+
+[tool.uv]
+package = false

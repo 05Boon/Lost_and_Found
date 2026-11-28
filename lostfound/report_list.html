@@ -1,0 +1,63 @@
+{% extends 'lostfound/base.html' %}
+
+{% block content %}
+
+<h2>Lost and Found Items</h2>
+
+<form method="GET">
+
+    <input type="text"
+           name="q"
+           placeholder="Search items...">
+
+    <input type="text"
+           name="location"
+           placeholder="Location">
+
+    <select name="category">
+
+        <option value="">All Categories</option>
+
+        <option value="electronics">Electronics</option>
+
+        <option value="documents">Documents</option>
+
+        <option value="clothing">Clothing</option>
+
+        <option value="accessories">Accessories</option>
+
+        <option value="other">Other</option>
+
+    </select>
+
+    <button type="submit">Search</button>
+
+</form>
+
+{% for report in reports %}
+
+<div>
+
+    <h3>{{ report.title }}</h3>
+
+    <p>{{ report.description }}</p>
+
+    <p>Type: {{ report.get_report_type_display }}</p>
+
+    <p>Category: {{ report.get_category_display }}</p>
+
+    <p>Location: {{ report.location }}</p>
+
+    <a href="{% url 'report_detail' report.id %}">
+        View Details
+    </a>
+
+</div>
+
+{% empty %}
+
+<p>No matching reports found.</p>
+
+{% endfor %}
+
+{% endblock %}

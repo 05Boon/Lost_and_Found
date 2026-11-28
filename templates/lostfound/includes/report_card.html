@@ -1,0 +1,26 @@
+<article class="card h-100 overflow-hidden">
+    {% if report.image %}
+        <img src="{{ report.image.url }}" class="card-img-top" alt="{{ report.title }}" style="height:210px;object-fit:cover">
+    {% else %}
+        <div class="d-flex align-items-center justify-content-center bg-light text-success" style="height:130px">
+            <i class="bi bi-box-seam" style="font-size:2.5rem" aria-hidden="true"></i>
+        </div>
+    {% endif %}
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+            <h3 class="h5 card-title mb-0">{{ report.title }}</h3>
+            <span class="badge {% if report.report_type == 'lost' %}badge-lost{% else %}badge-found{% endif %} flex-shrink-0">{{ report.get_report_type_display }}</span>
+        </div>
+        {% if can_view_description %}
+            <p class="text-muted small mb-3">{{ report.description|truncatewords:22 }}</p>
+        {% endif %}
+        <div class="small d-grid gap-1">
+            <span><i class="bi bi-tag me-1 text-muted"></i>{{ report.get_category_display }}</span>
+            <span><i class="bi bi-geo-alt me-1 text-muted"></i>{{ report.location }}</span>
+            <span><i class="bi bi-calendar3 me-1 text-muted"></i>{{ report.date_lost_or_found|date:"M j, Y" }}</span>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 pt-0 px-3 pb-3">
+        <a href="{% url 'report_detail' report.pk %}" class="btn btn-outline-primary w-100">View report <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+</article>

@@ -1,0 +1,129 @@
+{% extends 'lostfound/base.html' %}
+{% block title %}Browse items · FindIt{% endblock %}
+
+{% block content %}
+<section class="row align-items-end g-3 mb-4">
+    <div class="col-lg">
+        <p class="eyebrow mb-2">Community board</p>
+        <h1 class="display-6 fw-bold mb-1">Lost something? Found something?</h1>
+        <p class="text-muted mb-0">Search current reports or post one so the right person can find it.</p>
+    </div>
+    <div class="col-lg-auto">
+        {% if user.is_authenticated %}
+            <a href="{% url 'create_report' %}" class="btn btn-primary btn-lg"><i class="bi bi-plus-lg me-1"></i>Post a report</a>
+        {% else %}
+            <a href="{% url 'login' %}?next={% url 'create_report' %}" class="btn btn-primary btn-lg">Sign in to post</a>
+        {% endif %}
+    </div>
+</section>
+
+<form method="get" class="card mb-4" role="search">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-4">
+                <label for="q" class="form-label">Search words</label>
+                <input class="form-control" id="q" name="q" value="{{ request.GET.q }}" placeholder="Try “blue backpack”">
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <label for="location" class="form-label">Location</label>
+                <input class="form-control" id="location" name="location" value="{{ request.GET.location }}" placeholder="Library, north gate…">
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label for="type" class="form-label">Report type</label>
+                <select class="form-select" id="type" name="type">
+                    <option value="">Lost or found</option>
+                    <option value="lost" {% if request.GET.type == 'lost' %}selected{% endif %}>Lost</option>
+                    <option value="found" {% if request.GET.type == 'found' %}selected{% endif %}>Found</option>
+                </select>
+            </div>
+            <div class="col-sm-8 col-lg-2">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category">
+                    <option value="">All categories</option>
+                    {% for value, label in categories %}
+                        <option value="{{ value }}" {% if request.GET.category == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-4 col-lg-1 d-grid">
+                <button class="btn btn-outline-primary" type="submit" aria-label="Search reports"><i class="bi bi-search"></i></button>
+            </div>
+        </div>
+        {% if request.GET.q or request.GET.location or request.GET.category or request.GET.type %}
+            <div class="mt-3"><a class="small" href="{% url 'report_list' %}">Clear filters</a></div>
+        {% endif %}
+    </div>
+</form>
+
+<section class="mb-5" aria-labelledby="lost-reports-heading">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <p class="eyebrow mb-1">Looking for an item?</p>
+            <h2 class="h4 fw-bold mb-0" id="lost-reports-heading">Lost reports</h2>
+        </div>
+        <span class="small text-muted">{{ lost_reports.paginator.count }} report{{ lost_reports.paginator.count|pluralize }}</span>
+    </div>
+    <div class="row g-3">
+        {% for report in lost_reports %}
+            <div class="col-md-6 col-xl-4">
+                {% include "lostfound/includes/report_card.html" %}
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="card p-4 text-center">
+                    <p class="text-muted mb-0">No lost-item reports match these filters.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% if lost_reports.has_other_pages %}
+        <nav class="mt-3" aria-label="Lost report pages">
+            <ul class="pagination justify-content-center flex-wrap">
+                {% if lost_reports.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?lost_page={{ lost_reports.previous_page_number }}&q={{ request.GET.q|urlencode }}&location={{ request.GET.location|urlencode }}&type={{ request.GET.type|urlencode }}&category={{ request.GET.category|urlencode }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Page {{ lost_reports.number }} of {{ lost_reports.paginator.num_pages }}</span></li>
+                {% if lost_reports.has_next %}
+                    <li class="page-item"><a class="page-link" href="?lost_page={{ lost_reports.next_page_number }}&q={{ request.GET.q|urlencode }}&location={{ request.GET.location|urlencode }}&type={{ request.GET.type|urlencode }}&category={{ request.GET.category|urlencode }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</section>
+
+<section aria-labelledby="found-reports-heading">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <p class="eyebrow mb-1">Found something?</p>
+            <h2 class="h4 fw-bold mb-0" id="found-reports-heading">Found reports</h2>
+        </div>
+        <span class="small text-muted">{{ found_reports.paginator.count }} report{{ found_reports.paginator.count|pluralize }}</span>
+    </div>
+    <div class="row g-3">
+        {% for report in found_reports %}
+            <div class="col-md-6 col-xl-4">
+                {% include "lostfound/includes/report_card.html" %}
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="card p-4 text-center">
+                    <p class="text-muted mb-0">No found-item reports match these filters.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% if found_reports.has_other_pages %}
+        <nav class="mt-3" aria-label="Found report pages">
+            <ul class="pagination justify-content-center flex-wrap">
+                {% if found_reports.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?found_page={{ found_reports.previous_page_number }}&q={{ request.GET.q|urlencode }}&location={{ request.GET.location|urlencode }}&type={{ request.GET.type|urlencode }}&category={{ request.GET.category|urlencode }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Page {{ found_reports.number }} of {{ found_reports.paginator.num_pages }}</span></li>
+                {% if found_reports.has_next %}
+                    <li class="page-item"><a class="page-link" href="?found_page={{ found_reports.next_page_number }}&q={{ request.GET.q|urlencode }}&location={{ request.GET.location|urlencode }}&type={{ request.GET.type|urlencode }}&category={{ request.GET.category|urlencode }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</section>
+{% endblock %}

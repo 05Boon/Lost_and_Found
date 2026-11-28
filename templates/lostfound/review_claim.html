@@ -1,0 +1,53 @@
+{% extends 'lostfound/base.html' %}
+{% block title %}Review claim · FindIt{% endblock %}
+
+{% block content %}
+<a href="{% url 'claim_review_queue' %}" class="small text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Back to queue</a>
+<p class="eyebrow mt-4 mb-2">Private claim review</p>
+<h1 class="h2 fw-bold">{{ claim.report.title }}</h1>
+<p class="text-muted">Submitted by {{ claim.claimant.get_full_name|default:claim.claimant.username }} · {{ claim.submitted_at|date:"M j, Y · g:i a" }}</p>
+<div class="row g-4 mt-1">
+    <div class="col-lg-6">
+        <section class="card h-100">
+            <div class="card-body p-4">
+                <h2 class="h5">Ownership details</h2>
+                <div class="p-3 rounded-3" style="background:#f4f7f4;white-space:pre-line">{{ claim.private_evidence }}</div>
+                <p class="small text-muted mt-3 mb-0">This evidence is private. Do not copy it into the public report.</p>
+                <hr>
+                <h3 class="h6">Report details</h3>
+                <p class="mb-1"><strong>Location:</strong> {{ claim.report.location }}</p>
+                <p class="mb-1"><strong>Category:</strong> {{ claim.report.get_category_display }}</p>
+                <p class="mb-1"><strong>Description:</strong> {{ claim.report.description }}</p>
+                <p class="mb-0"><strong>Status:</strong> {{ claim.report.get_status_display }}</p>
+            </div>
+        </section>
+    </div>
+    <div class="col-lg-6">
+        <section class="card">
+            <div class="card-body p-4">
+                <h2 class="h5">Decision</h2>
+                {% if claim.decision_note %}<div class="alert alert-info">{{ claim.decision_note }}</div>{% endif %}
+                {% if claim.claim_status == 'approved' %}
+                    <div class="alert alert-success">This claim is already approved.</div>
+                    {% if claim.report.status == 'matched' %}
+                        <a href="{% url 'record_handover' claim.pk %}" class="btn btn-success">Record item handover</a>
+                    {% endif %}
+                {% else %}
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+                                {{ field }}
+                                {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary">Save decision</button>
+                        <a href="{% url 'claim_review_queue' %}" class="btn btn-outline-secondary ms-1">Cancel</a>
+                    </form>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

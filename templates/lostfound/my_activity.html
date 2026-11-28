@@ -1,0 +1,78 @@
+{% extends 'lostfound/base.html' %}
+{% block title %}My activity · FindIt{% endblock %}
+
+{% block content %}
+<p class="eyebrow mb-2">Your account</p>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+        <h1 class="display-6 fw-bold mb-1">My activity</h1>
+        <p class="text-muted mb-0">Manage your reports and check claim decisions.</p>
+    </div>
+    <a href="{% url 'create_report' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Post a report</a>
+</div>
+
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">My reports</h2>
+        <span class="small text-muted">{{ reports|length }} report{{ reports|length|pluralize }}</span>
+    </div>
+    {% for report in reports %}
+        <article class="card mb-3">
+            <div class="card-body d-flex flex-column flex-lg-row justify-content-between gap-3">
+                <div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <span class="badge {% if report.report_type == 'lost' %}badge-lost{% else %}badge-found{% endif %}">{{ report.get_report_type_display }}</span>
+                        <span class="badge text-bg-secondary">{{ report.get_status_display }}</span>
+                    </div>
+                    <h3 class="h5 mb-1">{{ report.title }}</h3>
+                    <p class="small text-muted mb-0">{{ report.location }} · {{ report.date_lost_or_found|date:"M j, Y" }} · {{ report.claim_count }} claim{{ report.claim_count|pluralize }}</p>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <a href="{% url 'report_detail' report.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                    {% if report.status == 'active' or report.status == 'under review' %}
+                        <a href="{% url 'edit_report' report.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <form method="post" action="{% url 'close_report' report.pk %}" onsubmit="return confirm('Close this report?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Close</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+    {% empty %}
+        <div class="card p-4 text-center">
+            <p class="text-muted mb-2">You have not posted a report yet.</p>
+            <div><a href="{% url 'create_report' %}" class="btn btn-outline-primary">Post your first report</a></div>
+        </div>
+    {% endfor %}
+</section>
+
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">My claims</h2>
+        <span class="small text-muted">{{ claims|length }} claim{{ claims|length|pluralize }}</span>
+    </div>
+    {% for claim in claims %}
+        <article class="card mb-3">
+            <div class="card-body d-flex flex-column flex-md-row justify-content-between gap-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge {% if claim.claim_status == 'approved' %}text-bg-success{% elif claim.claim_status == 'rejected' %}text-bg-danger{% elif claim.claim_status == 'more_info' %}text-bg-warning{% else %}text-bg-secondary{% endif %}">{{ claim.get_claim_status_display }}</span>
+                        <span class="small text-muted">Sent {{ claim.submitted_at|date:"M j, Y" }}</span>
+                    </div>
+                    <h3 class="h5 mb-1">{{ claim.report.title }}</h3>
+                    {% if claim.decision_note %}<p class="small text-muted mb-0">{{ claim.decision_note }}</p>{% endif %}
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{% url 'report_detail' claim.report.pk %}" class="btn btn-sm btn-outline-primary">View item</a>
+                    {% if claim.claim_status == 'more_info' %}
+                        <a href="{% url 'respond_to_claim' claim.pk %}" class="btn btn-sm btn-primary">Reply</a>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+    {% empty %}
+        <div class="card p-4 text-center"><p class="text-muted mb-0">You have not submitted a claim.</p></div>
+    {% endfor %}
+</section>
+{% endblock %}

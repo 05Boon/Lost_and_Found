@@ -1,0 +1,76 @@
+{% extends 'lostfound/base.html' %}
+{% block title %}Post a report · FindIt{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <a href="{% url 'report_list' %}" class="small text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Back to browse</a>
+        <p class="eyebrow mt-4 mb-2">Help reconnect an item</p>
+        <h1 class="h2 fw-bold">Post a lost or found report</h1>
+        <p class="text-muted mb-4">Share enough detail to identify the item. Keep unique proof of ownership private for claim review.</p>
+        <form method="post" enctype="multipart/form-data" class="card">
+            {% csrf_token %}
+            <div class="card-body p-4 p-lg-5">
+                {% if form.errors %}
+                    <div class="alert alert-danger" role="alert" aria-labelledby="form-errors-title">
+                        <h2 class="h6 fw-bold" id="form-errors-title">There’s a problem with your report</h2>
+                        <ul class="mb-0">
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><a class="alert-link" href="#{{ field.id_for_label }}">{{ field.label }}: {{ error }}</a></li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <p class="small text-muted mb-4"><span class="text-danger">*</span> Required fields</p>
+
+                <fieldset class="border-0 p-0 mb-4">
+                    <legend class="h5 fw-bold mb-3">Report basics</legend>
+                    {% for field in form %}
+                        {% if field.name == 'report_type' or field.name == 'title' %}
+                            {% include "lostfound/includes/report_form_field.html" %}
+                        {% endif %}
+                    {% endfor %}
+                </fieldset>
+
+                <fieldset class="border-0 p-0 mb-4">
+                    <legend class="h5 fw-bold mb-3">Item details</legend>
+                    <div class="row g-3">
+                        {% for field in form %}
+                            {% if field.name == 'category' or field.name == 'date_lost_or_found' %}
+                                <div class="col-md-6">
+                                    {% include "lostfound/includes/report_form_field.html" %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% for field in form %}
+                        {% if field.name == 'location' or field.name == 'description' %}
+                            {% include "lostfound/includes/report_form_field.html" %}
+                        {% endif %}
+                    {% endfor %}
+                </fieldset>
+
+                <fieldset class="border-0 p-0 mb-4">
+                    <legend class="h5 fw-bold mb-2">Add a photo</legend>
+                    {% for field in form %}
+                        {% if field.name == 'image' %}
+                            {% include "lostfound/includes/report_form_field.html" %}
+                        {% endif %}
+                    {% endfor %}
+                </fieldset>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-primary px-4">Post report</button>
+                    <a href="{% url 'report_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

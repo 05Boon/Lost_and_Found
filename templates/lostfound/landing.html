@@ -1,0 +1,73 @@
+{% extends 'lostfound/base.html' %}
+{% block title %}FindIt · Reunite people with their belongings{% endblock %}
+
+{% block extra_head %}
+<style>
+    .landing-hero {
+        min-height: 440px;
+        display: flex;
+        align-items: center;
+        margin: -1.5rem 0 3rem;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        color: #fff;
+        background:
+            linear-gradient(105deg, rgba(18, 59, 53, .98) 0%, rgba(18, 59, 53, .88) 55%, rgba(18, 59, 53, .38) 100%);
+    }
+    .landing-hero h1 { max-width: 700px; font-size: clamp(2.5rem, 6vw, 5.25rem); line-height: .98; letter-spacing: -.055em; }
+    .landing-hero p { max-width: 590px; color: rgba(255, 255, 255, .78); }
+    .landing-hero .btn-light { color: var(--forest); }
+    .stat-card { background: rgba(255, 255, 255, .09); border: 1px solid rgba(255, 255, 255, .13); border-radius: 1rem; }
+    .step-card { height: 100%; }
+    .step-number {
+        width: 42px;
+        height: 42px;
+        display: inline-grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--leaf);
+        color: var(--forest);
+        font-weight: 800;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="landing-hero">
+    <div class="container px-4 px-lg-5 py-5">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <p class="eyebrow text-white-50 mb-3">Lost item recovery, made simple</p>
+                <h1 class="fw-bold mb-4">Help something lost find its way home.</h1>
+                <p class="lead mb-4">Report an item, browse active listings, or submit a private claim. FindIt brings owners and finders together.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'lost_reports' %}" class="btn btn-light btn-lg px-4">View lost reports</a>
+                    <a href="{% url 'found_reports' %}" class="btn btn-light btn-lg px-4">View found reports</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'create_report' %}" class="btn btn-outline-light btn-lg px-4">Create a report</a>
+                    {% else %}
+                        <a href="{% url 'login' %}?next={% url 'create_report' %}" class="btn btn-outline-light btn-lg px-4">Create a report</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="row g-3">
+                    <div class="col-6 col-lg-12">
+                        <div class="stat-card p-4">
+                            <span class="d-block display-6 fw-bold">{{ lost_count }}</span>
+                            <span class="text-white-50">active lost reports</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-12">
+                        <div class="stat-card p-4">
+                            <span class="d-block display-6 fw-bold">{{ found_count }}</span>
+                            <span class="text-white-50">active found reports</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

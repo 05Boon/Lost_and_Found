@@ -1,0 +1,140 @@
+{% extends 'lostfound/base.html' %}
+{% block title %}{{ report.title }} · FindIt{% endblock %}
+
+{% block content %}
+<nav aria-label="Breadcrumb" class="mb-4">
+    <a href="{% url 'report_list' %}" class="small text-decoration-none"><i class="bi bi-arrow-left me-1"></i>All reports</a>
+</nav>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <article class="card overflow-hidden">
+            {% if report.image %}
+                <img src="{{ report.image.url }}" class="w-100" alt="{{ report.title }}" style="max-height:460px;object-fit:cover">
+            {% endif %}
+            <div class="card-body p-4 p-lg-5">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <span class="badge {% if report.report_type == 'lost' %}badge-lost{% else %}badge-found{% endif %}">{{ report.get_report_type_display }}</span>
+                    <span class="badge text-bg-light">{{ report.get_category_display }}</span>
+                    <span class="badge text-bg-secondary">{{ report.get_status_display }}</span>
+                </div>
+                <h1 class="display-6 fw-bold">{{ report.title }}</h1>
+                <p class="text-muted small">Posted {{ report.created_at|date:"M j, Y" }}</p>
+                {% if can_view_description %}
+                    <p class="fs-5 mt-4" style="white-space:pre-line">{{ report.description }}</p>
+                {% endif %}
+                <div class="row g-3 mt-4">
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3" style="background:#f4f7f4">
+                            <div class="eyebrow mb-1">Last seen</div>
+                            <div><i class="bi bi-geo-alt me-1"></i>{{ report.location }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3" style="background:#f4f7f4">
+                            <div class="eyebrow mb-1">{% if report.report_type == 'lost' %}Date lost{% else %}Date found{% endif %}</div>
+                            <div><i class="bi bi-calendar3 me-1"></i>{{ report.date_lost_or_found|date:"M j, Y" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        {% if match_suggestions %}
+            <section class="mt-4">
+                <p class="eyebrow mb-2">Possible matches</p>
+                <h2 class="h4 mb-3">Similar items reported</h2>
+                <div class="row g-3">
+                    {% for match in match_suggestions %}
+                        <div class="col-md-6">
+                            <a class="text-decoration-none text-reset" href="{% url 'report_detail' match.pk %}">
+                                <article class="card h-100 p-3">
+                                    <div class="d-flex justify-content-between gap-2">
+                                        <strong>{{ match.title }}</strong>
+                                        <span class="badge {% if match.report_type == 'lost' %}badge-lost{% else %}badge-found{% endif %}">{{ match.get_report_type_display }}</span>
+                                    </div>
+                                    <span class="small text-muted mt-2">{{ match.location }} · {{ match.date_lost_or_found|date:"M j, Y" }}</span>
+                                </article>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+    </div>
+
+    <aside class="col-lg-4">
+        <div class="card">
+            <div class="card-body p-4">
+                <p class="eyebrow mb-2">Next step</p>
+                {% if can_claim %}
+                    <h2 class="h5">Think this is yours?</h2>
+                    <p class="small text-muted">Submit private identifying details. Staff will review the claim before any handover.</p>
+                    <a href="{% url 'submit_claim' report.pk %}" class="btn btn-primary w-100">Claim this item</a>
+                {% elif existing_claim %}
+                    <h2 class="h5">Your claim is {{ existing_claim.get_claim_status_display|lower }}</h2>
+                    {% if existing_claim.decision_note %}<p class="small text-muted">{{ existing_claim.decision_note }}</p>{% endif %}
+                    {% if existing_claim.claim_status == 'more_info' %}
+                        <a href="{% url 'respond_to_claim' existing_claim.pk %}" class="btn btn-primary w-100">Send more information</a>
+                    {% else %}
+                        <a href="{% url 'my_activity' %}" class="btn btn-outline-primary w-100">View my activity</a>
+                    {% endif %}
+                {% elif report.report_type == 'found' and not user.is_authenticated %}
+                    <h2 class="h5">Is this your item?</h2>
+                    <p class="small text-muted">Sign in to submit a private claim for staff review.</p>
+                    <a href="{% url 'login' %}?next={% url 'submit_claim' report.pk %}" class="btn btn-primary w-100">Sign in to claim</a>
+                {% elif report.report_type == 'lost' %}
+                    <h2 class="h5">Found this item?</h2>
+                    <p class="small text-muted">Claims are submitted on found-item reports. If you found this item, post a found report so its owner can contact you. If you’re looking for it, check the possible matches on this page.</p>
+                    <a href="{% url 'create_report' %}" class="btn btn-primary w-100">Post a found report</a>
+                {% else %}
+                    <h2 class="h5">Stay in the loop</h2>
+                    <p class="small text-muted">Browse other reports or sign in to post an update.</p>
+                    <a href="{% url 'report_list' %}" class="btn btn-outline-primary w-100">Browse reports</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if can_manage %}
+            <div class="card mt-3">
+                <div class="card-body p-4">
+                    <h2 class="h6">Manage this report</h2>
+                    {% if report.status == 'active' or report.status == 'under review' %}
+                        {% if user.pk == report.reporter_id %}
+                            <a href="{% url 'edit_report' report.pk %}" class="btn btn-outline-primary w-100 mb-2">Edit report</a>
+                            <form method="post" action="{% url 'close_report' report.pk %}" onsubmit="return confirm('Close this report? It will no longer appear in search.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-secondary w-100">Close report</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                    {% if user.is_staff or user.is_superuser %}
+                        <a href="{% url 'staff_report_list' %}" class="btn btn-outline-secondary w-100 mt-2">Staff report list</a>
+                        {% for claim in approved_claims %}
+                            {% if not has_handover %}
+                                <a href="{% url 'record_handover' claim.pk %}" class="btn btn-success w-100 mt-2">Record item handover</a>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if status_history %}
+                <div class="card mt-3">
+                    <div class="card-body p-4">
+                        <h2 class="h6">Status history</h2>
+                        <ul class="list-unstyled mb-0 small">
+                            {% for entry in status_history %}
+                                <li class="border-start border-2 ps-3 pb-3">
+                                    <strong>{{ entry.new_status|title }}</strong>
+                                    <div class="text-muted">{{ entry.changed_at|date:"M j, Y · g:i a" }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}

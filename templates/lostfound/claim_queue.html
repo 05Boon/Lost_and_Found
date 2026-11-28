@@ -1,0 +1,41 @@
+{% extends 'lostfound/base.html' %}
+{% block title %}Claim review · FindIt{% endblock %}
+
+{% block content %}
+<a href="{% url 'admin_dashboard' %}" class="small text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Staff desk</a>
+<p class="eyebrow mt-4 mb-2">Private staff queue</p>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div><h1 class="display-6 fw-bold mb-1">Claim review</h1><p class="text-muted mb-0">Ownership evidence is visible only to authorized staff.</p></div>
+    <form method="get" class="d-flex gap-2 align-items-center">
+        <label class="small fw-semibold" for="status">Show</label>
+        <select class="form-select" id="status" name="status">
+            <option value="open" {% if selected_status == 'open' %}selected{% endif %}>Needs review</option>
+            {% for value, label in claim_statuses %}
+                {% if value != 'pending' %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endif %}
+            {% endfor %}
+        </select>
+        <button class="btn btn-outline-primary" type="submit">Filter</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light"><tr><th>Item</th><th>Claimant</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+                {% for claim in claims %}
+                    <tr>
+                        <td><a href="{% url 'report_detail' claim.report.pk %}">{{ claim.report.title }}</a><div class="small text-muted">{{ claim.report.location }}</div></td>
+                        <td>{{ claim.claimant.get_full_name|default:claim.claimant.username }}</td>
+                        <td>{{ claim.submitted_at|date:"M j, Y" }}</td>
+                        <td><span class="badge text-bg-secondary">{{ claim.get_claim_status_display }}</span></td>
+                        <td class="text-end"><a href="{% url 'review_claim' claim.pk %}" class="btn btn-sm btn-outline-primary">Review details</a></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center p-5"><i class="bi bi-check2-circle fs-2 text-success"></i><p class="mb-0 mt-2 text-muted">No claims in this view.</p></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
